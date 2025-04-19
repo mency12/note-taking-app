@@ -1,34 +1,15 @@
-const AWS = require("aws-sdk");
-const s3 = new AWS.S3();
-
-exports.handler = async (event) => {
-  const { fileId, htmlContentType } = event;
-
-  console.log("FileID : ", fileId);
-
-  try {
-    
-    const s3Input = {
-      Bucket: "cloud-term-project-s3-bucket-12345678",
-      Key: `${fileId}.html`,
-      Body: htmlContentType,
-      ContentType: "text/html", 
-    };
-
-    await s3.putObject(s3Input).promise();
-    return {
-      statusCode: 200,
-      message: "File saved !!",
-      headers: {
-        "Access-Control-Allow-Origin": "*", // Adjust as needed for your use case
-        "Content-Type": "application/json"
-    },
-    };
-  } catch (error) {
-    console.error("Error in saving file: ", error);
-    return {
-      statusCode: 500,
-      error: "Error in saving the file",
-    };
+exports.handler = (event, context, callback) => {
+  // Log the event
+  console.log('PreSignUp event:', JSON.stringify(event, null, 2));
+  
+  // Auto confirm the user
+  event.response.autoConfirmUser = true;
+  
+  // Set the email as verified if it exists
+  if (event.request.userAttributes.hasOwnProperty("email")) {
+    event.response.autoVerifyEmail = true;
   }
+  
+  // Return to Amazon Cognito with the updated event
+  callback(null, event);
 };
