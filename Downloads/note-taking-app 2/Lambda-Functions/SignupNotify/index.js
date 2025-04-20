@@ -1,15 +1,17 @@
-exports.handler = (event, context, callback) => {
-  // Log the event
-  console.log('PreSignUp event:', JSON.stringify(event, null, 2));
-  
-  // Auto confirm the user
-  event.response.autoConfirmUser = true;
-  
-  // Set the email as verified if it exists
-  if (event.request.userAttributes.hasOwnProperty("email")) {
-    event.response.autoVerifyEmail = true;
-  }
-  
-  // Return to Amazon Cognito with the updated event
-  callback(null, event);
+const AWS = require('aws-sdk');
+const sns = new AWS.SNS();
+
+exports.handler = async (event) => {
+  const email = event.request.userAttributes.email;
+
+  await sns.publish({
+    TopicArn: process.env.TOPIC_ARN,
+    Subject : 'New user sign‑up (confirm your subscription)',
+    Message : `User ${email} has confirmed their account.\n\nYou can unsubscribe any time.`
+  }).promise();
+
+  // must return event unchanged so Cognito continues its flow
+  return event;
 };
+
+
